@@ -50,28 +50,31 @@ def health_check():
     })
 
 # Endpoint for symptom prediction
+
 @app.route("/ask", methods=["POST"])
 def ask():
     try:
-        user_input = request.json.get("message", "").strip().lower()
+        user_input = request.json.get("message", "").strip()
 
-        # Basic intent detection to handle greetings or small talk
-        casual_phrases = ["hi", "hello", "hey", "thank you", "thanks", "good morning", "good evening", "bye"]
-        if any(phrase in user_input for phrase in casual_phrases):
-            casual_responses = {
-                "hi": "Hello! How can I assist you with your health today?",
-                "hello": "Hi there! Feel free to describe any symptoms you're experiencing.",
-                "hey": "Hey! I'm here to help with health-related concerns.",
-                "thank you": "You're welcome! Let me know if you have any other questions.",
-                "thanks": "Happy to help!",
-                "good morning": "Good morning! Hope you're feeling well. Do you have any symptoms to discuss?",
-                "good evening": "Good evening! Let me know how I can assist you.",
-                "good night": "Good night! Sleep well. Let me know if you have any problem before you sleep.",
-                "bye": "Take care! I'm here whenever you need health advice."
-            }
-            for key in casual_responses:
-                if key in user_input:
-                    return jsonify({"reply": casual_responses[key]})
+        # Convert to lowercase for matching
+        user_input_lower = user_input.lower()
+
+        # Set of casual phrases for exact or near-exact matches
+        casual_responses = {
+            "hi": "Hello! How can I assist you with your health today?",
+            "hello": "Hi there! Feel free to describe any symptoms you're experiencing.",
+            "hey": "Hey! I'm here to help with health-related concerns.",
+            "thank you": "You're welcome! Let me know if you have any other questions.",
+            "thanks": "Happy to help!",
+            "good morning": "Good morning! Hope you're feeling well. Do you have any symptoms to discuss?",
+            "good evening": "Good evening! Let me know how I can assist you.",
+            "bye": "Take care! I'm here whenever you need health advice."
+        }
+
+        # Only respond if input is short and exactly matches or is very close to a casual phrase
+        for key in casual_responses:
+            if user_input_lower in [key, key + ".", key + "!", key + " you", key + " you!"]:
+                return jsonify({"reply": casual_responses[key]})
 
         # Proceed with medical analysis
         prompt = PROMPT_TEMPLATE.format(input=user_input)
